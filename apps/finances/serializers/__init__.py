@@ -1,0 +1,1 @@
+from apps.finances.serializers.expense import ExpenseSerializer
