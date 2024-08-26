@@ -159,8 +159,6 @@ STATIC_ROOT = environ.get("STATIC_ROOT", default=BASE_DIR / "static")
 MEDIA_URL = "/media/"
 MEDIA_ROOT = environ.get("MEDIA_ROOT", default=BASE_DIR / "media")
 
-CORS_ALLOWED_ORIGINS = environ.get("CORS_ALLOWED_ORIGINS", default="*").split(",")
-
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
