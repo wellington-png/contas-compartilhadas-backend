@@ -50,3 +50,6 @@ runserver:
 
 build:
 	sudo docker compose up --build
+
+collectstatic:
+	sudo docker compose exec contas_backend python manage.py collectstatic
