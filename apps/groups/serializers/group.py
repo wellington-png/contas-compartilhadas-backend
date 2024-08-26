@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer, ValidationError
 from apps.groups.models import Group
-
+from apps.accounts.serializers import UserSerializer
 
 class GroupSerializer(ModelSerializer):
     class Meta:
@@ -32,3 +32,14 @@ class GroupSerializer(ModelSerializer):
 
 class InviteEmailSerializer(serializers.Serializer):
     email = serializers.EmailField()
+
+
+class GroupDetailsSerializer(GroupSerializer):
+    members = UserSerializer(many=True, read_only=True)
+    owner_name = serializers.SerializerMethodField()
+
+    def get_owner_name(self, obj):
+        return obj.owner.get_full_name()
+
+    class Meta(GroupSerializer.Meta):
+        fields = GroupSerializer.Meta.fields + ["members", "owner_name"]

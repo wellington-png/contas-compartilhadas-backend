@@ -10,7 +10,11 @@ from django.db.models import Sum
 
 from apps.core.viewsets import BaseModelViewSet
 from apps.groups.models import Group, GroupInvite, generate_invite_token
-from apps.groups.serializers import GroupSerializer, InviteEmailSerializer
+from apps.groups.serializers import (
+    GroupSerializer,
+    InviteEmailSerializer,
+    GroupDetailsSerializer,
+)
 from apps.finances.models import Expense
 from apps.finances.serializers import ExpenseSerializer
 from apps.accounts.models import Membership
@@ -79,6 +83,14 @@ class GroupViewSet(BaseModelViewSet):
         return Response(serializer.data)
 
     def get_serializer_class(self):
+        if self.action == "retrieve":
+            return GroupDetailsSerializer
+        if self.action == "add_expense":
+            return ExpenseSerializer
+        if self.action == "expenses":
+            return ExpenseSerializer
+        if self.action == "financial_summary":
+            return FinancialSummarySerializer
         return GroupSerializer
 
     @action(

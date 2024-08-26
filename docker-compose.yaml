@@ -1,0 +1,53 @@
+services:
+  contas_mailpit:
+    container_name: contas_mailpit
+    image: axllent/mailpit
+    restart: unless-stopped
+    volumes:
+      - contas_mailpit_data:/data
+    ports:
+      - "${MAILPIT_PORT_1_CONTAINER}:${MAILPIT_PORT_1}"
+      - "${MAILPIT_PORT_2_CONTAINER}:${MAILPIT_PORT_2}"
+    env_file:
+      - .mailpit.env
+    networks:
+      contas_network:
+        ipv4_address: "${MAILPIT_CONTAINER_IP}"
+    hostname: contas_mailpit
+  contas_db:
+    container_name: contas_db
+    image: postgis/postgis:13-3.4-alpine
+    volumes:
+      - contas_data:/var/lib/postgresql/data/
+    env_file:
+      - .db.env
+    ports:
+      - "${DB_CONTAINER_PORT}:${DB_PORT}"
+    restart: always
+    networks:
+      contas_network:
+        ipv4_address: ${DB_CONTAINER_IP}
+    hostname: contas_db
+  contas_backend:
+    container_name: contas_backend
+    build:
+      context: .
+    command: ${BACKEND_COMMAND}
+    volumes:
+      - .:/home/app/
+    ports:
+      - "${BACKEND_CONTAINER_PORT}:${BACKEND_SERVICE_PORT}"
+    env_file:
+      - .env
+    networks:
+      contas_network:
+        ipv4_address: ${BACKEND_CONTAINER_IP}
+    hostname: contas_backend
+
+volumes:
+  contas_data:
+  contas_mailpit_data:
+  
+networks:
+  contas_network:
+      external: true

@@ -5,10 +5,10 @@ from apps.core.models import BaseModel
 class Group(BaseModel):
     name = models.CharField(max_length=100)
     owner = models.ForeignKey(
-        "auth.User", on_delete=models.CASCADE, related_name="owned_groups"
+        "accounts.User", on_delete=models.CASCADE, related_name="owned_groups"
     )
     members = models.ManyToManyField(
-        "auth.User", through="accounts.Membership", related_name="group_members"
+        "accounts.User", through="accounts.Membership", related_name="group_members"
     )
 
     def __str__(self):

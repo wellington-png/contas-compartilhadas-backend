@@ -3,7 +3,7 @@ from apps.core.models import BaseModel
 
 
 class Membership(BaseModel):
-    user = models.ForeignKey("auth.User", on_delete=models.CASCADE)
+    user = models.ForeignKey("accounts.User", on_delete=models.CASCADE)
     group = models.ForeignKey("groups.Group", on_delete=models.CASCADE)
     joined_at = models.DateTimeField(auto_now_add=True)
 

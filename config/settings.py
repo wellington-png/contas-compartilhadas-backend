@@ -1,23 +1,23 @@
 from pathlib import Path
-import environ
+from os import environ
 from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-env = environ.Env()
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-3qt!#wgy6$4+-x%312#k7lm1!x^upv2-zks%duv9n!_$wawu+v"
+SECRET_KEY = environ.get("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = bool(environ.get("DEBUG", default="False"))
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = environ.get("ALLOWED_HOSTS", default="*").split(",")
 
+CSRF_TRUSTED_ORIGINS = environ.get("CSRF_TRUSTED_ORIGINS", default="").split(",")
 
 # Application definition
 
@@ -56,7 +56,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = "config.urls"
-AUTH_USER_MODEL = 'auth.User'
+AUTH_USER_MODEL = 'accounts.User'
 
 TEMPLATES = [
     {
@@ -95,10 +95,21 @@ SIMPLE_JWT = {
 WSGI_APPLICATION = "config.wsgi.application"
 
 
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.sqlite3",
+#         "NAME": BASE_DIR / "db.sqlite3",
+#     }
+# }
+
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": environ.get("DB_ENGINE", default="django.db.backends.postgresql"),
+        "NAME": environ.get("DB_NAME", default="github-actions"),
+        "USER": environ.get("DB_USER", default="postgres"),
+        "PASSWORD": environ.get("DB_PASSWORD", default="postgres"),
+        "HOST": environ.get("DB_HOST", default="localhost"),
+        "PORT": environ.get("DB_PORT", default="5432"),
     }
 }
 
@@ -150,7 +161,7 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
-EMAIL_BACKEND = env(
+EMAIL_BACKEND = environ.get(
     "DJANGO_EMAIL_BACKEND",
     default="django.core.mail.backends.smtp.EmailBackend",
 )
@@ -159,5 +170,5 @@ EMAIL_TIMEOUT = 5
 
 # EMAIL
 # ------------------------------------------------------------------------------
-EMAIL_HOST = "localhost"
-EMAIL_PORT = 1025
+EMAIL_HOST = environ.get("MAILPIT_HOST", default="localhost")
+EMAIL_PORT =environ.get("MAILPIT_PORT_2", default="1025") 

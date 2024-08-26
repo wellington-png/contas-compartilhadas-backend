@@ -22,10 +22,8 @@ class Command(BaseCommand):
         users = []
         for _ in range(5):  # cria 5 usuários
             user = User.objects.create_user(
-                username=fake.user_name(),
                 password='password123',
-                first_name=fake.first_name(),
-                last_name=fake.last_name(),
+                name=fake.first_name(),
                 email=fake.email(),
             )
             users.append(user)

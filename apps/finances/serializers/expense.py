@@ -8,3 +8,4 @@ class ExpenseSerializer(ModelSerializer):
         fields = ["id", "amount", "description", "date_spent", "group", "is_fixed"]
         read_only_fields = ["id", "group"]
 
+

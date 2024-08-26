@@ -1,4 +1,4 @@
-from apps.groups.serializers.group import GroupSerializer, InviteEmailSerializer
+from apps.groups.serializers.group import GroupSerializer, InviteEmailSerializer, GroupDetailsSerializer
 
 
-__all__ = ["GroupSerializer", "InviteEmailSerializer"]
+__all__ = ["GroupSerializer", "InviteEmailSerializer", "GroupDetailsSerializer"]

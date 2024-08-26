@@ -5,7 +5,7 @@ from apps.core.models import BaseModel
 
 # Model para representar um gasto, que pode ser fixo ou variável
 class Expense(BaseModel):
-    user = models.ForeignKey("auth.User", on_delete=models.CASCADE, related_name="expenses")
+    user = models.ForeignKey("accounts.User", on_delete=models.CASCADE, related_name="expenses")
     group = models.ForeignKey(
         "groups.Group", on_delete=models.CASCADE, related_name="expenses"
     )

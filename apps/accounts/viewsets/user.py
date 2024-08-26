@@ -1,24 +1,21 @@
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny
 from rest_framework.pagination import PageNumberPagination
 from django_filters.rest_framework import DjangoFilterBackend
 
-from rest_framework.mixins import DestroyModelMixin
-from rest_framework.mixins import CreateModelMixin
-from rest_framework.mixins import RetrieveModelMixin
-from rest_framework.mixins import UpdateModelMixin
-from rest_framework.viewsets import GenericViewSet
-from apps.accounts.serializers import UserSerializer
 from django.contrib.auth import get_user_model
+
+from rest_framework.viewsets import ModelViewSet
+
+from apps.accounts.serializers import UserSerializer, UserCreateSerializer
+
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
 User = get_user_model()
 
-class UserViewSet(
-    DestroyModelMixin,
-    CreateModelMixin,
-    RetrieveModelMixin,
-    UpdateModelMixin,
-    GenericViewSet,
-):
+
+class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
@@ -33,3 +30,21 @@ class UserViewSet(
 
     def get_queryset(self):
         return super().get_queryset().exclude(email=self.request.user.email)
+    
+    def get_serializer_class(self):
+        if self.action == "create":
+            return UserCreateSerializer
+        return super().get_serializer_class()
+
+    def get_permissions(self):
+        if self.action == "create":
+            return [AllowAny()]
+        return [IsAuthenticated()]
+
+
+    @action(detail=False, methods=["GET"])
+    def me(self, request):
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data)
+    
+
