@@ -52,3 +52,16 @@ class User(AbstractUser, BaseModel):
 
     def __str__(self):
         return self.email
+    
+
+    def __hash__(self):
+        return hash(self.pk)
+    
+    def __eq__(self, other):
+        return self.pk == other.pk
+
+    def __ne__(self, other):
+        return self.pk != other.pk
+    
+    def __lt__(self, other):
+        return self.pk < other.pk
