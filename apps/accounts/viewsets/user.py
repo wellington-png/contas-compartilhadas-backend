@@ -27,9 +27,6 @@ class UserViewSet(ModelViewSet):
     page_size = 10
     page_size_query_param = "page_size"
     max_page_size = 100
-
-    def get_queryset(self):
-        return super().get_queryset().exclude(email=self.request.user.email)
     
     def get_serializer_class(self):
         if self.action == "create":
