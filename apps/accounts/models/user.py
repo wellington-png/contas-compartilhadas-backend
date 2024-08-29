@@ -43,7 +43,7 @@ class User(AbstractUser, BaseModel):
         "Account Type", max_length=10, choices=ACCOUNT_TYPE_CHOICES, default="Simple"
     )
     
-    avatar = models.CharField("Avatar", max_length=50, default="default")
+    avatar = models.CharField("Avatar", max_length=50, default="defaultAvatar")
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["name"]
