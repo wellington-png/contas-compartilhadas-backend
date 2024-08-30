@@ -2,12 +2,12 @@ from django.core.mail import send_mail
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework import status
-from rest_framework.viewsets import ModelViewSet
 import qrcode
 import io
 import base64
 from django.db.models import Sum
-
+from django.utils.timezone import now
+from django.db.models import Sum, Avg
 from apps.core.viewsets import BaseModelViewSet
 from apps.groups.models import Group, GroupInvite, generate_invite_token
 from apps.groups.serializers import (
@@ -82,6 +82,12 @@ class GroupViewSet(BaseModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
+    @action(detail=True, methods=["get"], url_path="details", name="details")
+    def details(self, request, pk=None):
+        group = self.get_object()
+        serializer = GroupDetailsSerializer(group)
+        return Response(serializer.data)
+
     def get_serializer_class(self):
         if self.action == "retrieve":
             return GroupDetailsSerializer
@@ -91,6 +97,8 @@ class GroupViewSet(BaseModelViewSet):
             return ExpenseSerializer
         if self.action == "financial_summary":
             return FinancialSummarySerializer
+        if self.action == "add_member":
+            return AddMemberSerializer
         return GroupSerializer
 
     @action(
@@ -184,7 +192,10 @@ class GroupViewSet(BaseModelViewSet):
     )
     def add_member(self, request, *args, **kwargs):
         group = self.get_object()
-        serializer = MembershipSerializer(data=request.data)
+        serializer = MembershipSerializer(
+            data={"user": request.data.get("user"), "group": group.id}
+        )
+
         if serializer.is_valid():
             if Membership.objects.filter(
                 group=group, user=serializer.validated_data["user"]
@@ -221,7 +232,6 @@ class GroupViewSet(BaseModelViewSet):
         detail=True,
         methods=["get"],
         url_path="expenses",
-        serializer_class=ExpenseSerializer,
     )
     def expenses(self, request, *args, **kwargs):
         group = self.get_object()
