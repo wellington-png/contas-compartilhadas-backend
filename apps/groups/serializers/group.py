@@ -49,7 +49,7 @@ class GroupDetailsSerializer(GroupSerializer):
     total_fixed_income = serializers.SerializerMethodField()
 
     def get_owner_name(self, obj):
-        return obj.owner.name()
+        return obj.owner.name
 
     def get_expenses(self, obj):
         current_month = now().month
