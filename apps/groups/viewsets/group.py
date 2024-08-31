@@ -42,20 +42,19 @@ class GroupViewSet(BaseModelViewSet):
         return Group.objects.filter(members=user)
 
     def perform_update(self, serializer):
-        group_name = serializer.validated_data.get("name")
-        # if Group.objects.filter(name=group_name, owner=self.request.user).exists():
-        #     raise ValidationError(
-        #         {"detail": "Você já possui um grupo com este nome."},
-        #         code=status.HTTP_400_BAD_REQUEST,
-        #     )
-
         if serializer.instance.owner != self.request.user:
             raise ValidationError(
                 {"detail": "Você não tem permissão para editar este grupo."},
                 code=status.HTTP_403_FORBIDDEN,
             )
 
-        serializer.save()
+        updated_group = serializer.save()
+
+        # Serialize the updated instance with GroupDetailsSerializer
+        details_serializer = GroupDetailsSerializer(updated_group)
+
+        # Return a response with the serialized data
+        return Response(details_serializer.data, status=status.HTTP_200_OK)
 
     def perform_destroy(self, instance):
         if instance.owner != self.request.user:
@@ -81,6 +80,29 @@ class GroupViewSet(BaseModelViewSet):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        
+        # Verifica se o usuário é o proprietário do grupo
+        if instance.owner != request.user:
+            raise ValidationError(
+                {"detail": "Você não tem permissão para editar este grupo."},
+                code=status.HTTP_403_FORBIDDEN,
+            )
+
+        # Cria o serializer com os dados do request
+        serializer = self.get_serializer(instance, data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        # Salva a instância atualizada
+        updated_group = serializer.save()
+
+        # Serializa a instância atualizada com GroupDetailsSerializer
+        details_serializer = GroupDetailsSerializer(updated_group)
+
+        # Retorna a resposta com os dados serializados
+        return Response(details_serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["get"], url_path="details", name="details")
     def details(self, request, pk=None):
