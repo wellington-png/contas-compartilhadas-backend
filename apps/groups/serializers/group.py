@@ -17,6 +17,10 @@ class GroupSerializer(ModelSerializer):
         validated_data["owner"] = self.context["request"].user
         return super().create(validated_data)
 
+    # def validate_name(self, value):
+    #     if Group.objects.filter(name=value).exists():
+    #         raise ValidationError("Você já possui um grupo com este nome.")
+    #     return value
 
     def validate_owner(self, value):
         if value != self.context["request"].user:
