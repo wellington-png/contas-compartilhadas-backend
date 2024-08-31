@@ -89,4 +89,5 @@ class GroupDetailsSerializer(GroupSerializer):
             "total_expenses",
             "average_expenses_per_person",
             "total_fixed_income",
+            "created_at",
         ]
