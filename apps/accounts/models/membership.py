@@ -12,3 +12,6 @@ class Membership(BaseModel):
 
     class Meta:
         unique_together = ("group", "user")
+
+    def __hash__(self):
+        return hash(self.id)

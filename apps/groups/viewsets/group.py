@@ -83,7 +83,7 @@ class GroupViewSet(BaseModelViewSet):
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
-        
+
         # Verifica se o usuário é o proprietário do grupo
         if instance.owner != request.user:
             raise ValidationError(
@@ -121,6 +121,13 @@ class GroupViewSet(BaseModelViewSet):
             return FinancialSummarySerializer
         if self.action == "add_member":
             return AddMemberSerializer
+        if self.action == "members":
+            return MembershipSerializer
+        if self.action == "invite_email":
+            return InviteEmailSerializer
+        if self.action == "invite_qrcode":
+            return serializers.Serializer
+
         return GroupSerializer
 
     @action(
@@ -231,10 +238,16 @@ class GroupViewSet(BaseModelViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, methods=["delete"], url_path="remove-member")
+    @action(detail=True, methods=["put"], url_path="remove-member")
     def remove_member(self, request, *args, **kwargs):
         group = self.get_object()
         user_id = request.data.get("user_id")
+
+        if not user_id:
+            return Response(
+                {"detail": "O ID do usuário é obrigatório."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         if group.owner.id == user_id:
             return Response(
@@ -246,6 +259,7 @@ class GroupViewSet(BaseModelViewSet):
         if membership:
             membership.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
+
         return Response(
             {"detail": "Membro não encontrado."}, status=status.HTTP_404_NOT_FOUND
         )
