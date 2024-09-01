@@ -16,3 +16,6 @@ class Group(BaseModel):
 
     def total_expenses(self):
         return sum(expense.amount for expense in self.expenses.all())
+
+    def __hash__(self) -> int:
+        return hash(self.id)
