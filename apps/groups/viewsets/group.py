@@ -67,11 +67,6 @@ class GroupViewSet(BaseModelViewSet):
 
     def perform_create(self, serializer):
         group_name = serializer.validated_data.get("name")
-        if Group.objects.filter(name=group_name, owner=self.request.user).exists():
-            raise ValidationError(
-                {"detail": "Você já possui um grupo com este nome."},
-                code=status.HTTP_400_BAD_REQUEST,
-            )
 
         group = serializer.save(owner=self.request.user)
         Membership.objects.create(group=group, user=self.request.user)
