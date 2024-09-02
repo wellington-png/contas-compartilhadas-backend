@@ -7,7 +7,7 @@ import io
 import base64
 from django.db.models import Sum
 from django.utils.timezone import now
-from django.db.models import Sum, Avg
+from django.db.models import Sum, F, Q
 from apps.core.viewsets import BaseModelViewSet
 from apps.groups.models import Group, GroupInvite, generate_invite_token
 from apps.groups.serializers import (
@@ -15,10 +15,15 @@ from apps.groups.serializers import (
     InviteEmailSerializer,
     GroupDetailsSerializer,
 )
+from datetime import datetime
 from apps.finances.models import Expense
 from apps.finances.serializers import ExpenseSerializer
 from apps.accounts.models import Membership
-from apps.accounts.serializers import MembershipSerializer, AddMemberSerializer, MembershipDetailsSerializer
+from apps.accounts.serializers import (
+    MembershipSerializer,
+    AddMemberSerializer,
+    MembershipDetailsSerializer,
+)
 from rest_framework import serializers
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
@@ -178,14 +183,16 @@ class GroupViewSet(BaseModelViewSet):
 
         invite_token = generate_invite_token()
         GroupInvite.objects.create(group=group, token=invite_token, user=user)
-        invite_link = f"https://wellington2.thunder.dev.br/join/{group.id}/{invite_token}/"
+        invite_link = (
+            f"https://wellington2.thunder.dev.br/join/{group.id}/{invite_token}/"
+        )
         button_text = "<a href='{invite_link}'>Clique aqui para se juntar ao grupo</a>"
 
         subject = f"Convite para participar do grupo {group.name}"
         message = f"Você foi convidado a participar do grupo {group.name} no aplicativo Contas Compartilhadas.\n\n"
         message += f"Para se juntar ao grupo, clique no link abaixo:\n{invite_link}\n\n"
         message += "Se você não esperava este convite, por favor ignore este e-mail."
-        message += f"<br><br>{button_text}"    
+        message += f"<br><br>{button_text}"
 
         send_mail(
             subject,
@@ -339,3 +346,55 @@ class GroupViewSet(BaseModelViewSet):
             {"detail": "Você entrou no grupo com sucesso."},
             status=status.HTTP_201_CREATED,
         )
+
+    @action(
+        detail=True,
+        methods=["get"],
+        url_path="expense-comparison",
+    )
+    def expense_comparison(self, request, *args, **kwargs):
+        group = self.get_object()
+        month = request.query_params.get("month", None)
+        year = request.query_params.get("year", None)
+
+        if not month or not year:
+            return Response(
+                {"detail": "Mês e ano são obrigatórios."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            # Validar se o mês e o ano são números válidos
+            month = int(month)
+            year = int(year)
+            # Obter o primeiro e o último dia do mês
+            start_date = datetime(year, month, 1)
+            end_date = datetime(year, month + 1, 1) if month < 12 else datetime(year + 1, 1, 1)
+        except ValueError:
+            return Response(
+                {"detail": "Mês ou ano inválido."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Filtrar as despesas do grupo no período especificado
+        expenses = Expense.objects.filter(
+            group=group,
+            date_spent__gte=start_date,
+            date_spent__lt=end_date,
+        )
+
+        # Calcular o total geral de despesas
+        total_expense_all = expenses.aggregate(total=Sum('amount'))['total'] or 0
+
+        if total_expense_all == 0:
+            return Response([], status=status.HTTP_200_OK)
+
+        # Agregar os gastos por membro e calcular o percentual
+        expense_by_member = expenses.values("user__id", "user__email").annotate(
+            total_expense=Sum("amount")
+        ).order_by("-total_expense")
+
+        for member in expense_by_member:
+            member['percent'] = round((member['total_expense'] / total_expense_all) * 100, 2)
+
+        return Response(expense_by_member, status=status.HTTP_200_OK)
