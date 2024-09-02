@@ -18,7 +18,7 @@ from apps.groups.serializers import (
 from apps.finances.models import Expense
 from apps.finances.serializers import ExpenseSerializer
 from apps.accounts.models import Membership
-from apps.accounts.serializers import MembershipSerializer, AddMemberSerializer
+from apps.accounts.serializers import MembershipSerializer, AddMemberSerializer, MembershipDetailsSerializer
 from rest_framework import serializers
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
@@ -203,12 +203,12 @@ class GroupViewSet(BaseModelViewSet):
         detail=True,
         methods=["get"],
         url_path="members",
-        serializer_class=MembershipSerializer,
+        serializer_class=MembershipDetailsSerializer,
     )
     def members(self, request, *args, **kwargs):
         group = self.get_object()
         memberships = Membership.objects.filter(group=group)
-        serializer = MembershipSerializer(memberships, many=True)
+        serializer = MembershipDetailsSerializer(memberships, many=True)
         return Response(serializer.data)
 
     @action(
