@@ -36,6 +36,13 @@ class ExpenseViewSet(BaseModelViewSet):
     lookup_url_kwarg = "id"
 
 
+
+    def get_queryset(self):
+        user = self.request.user
+        # Filtra as despesas dos grupos em que o usuário logado participa
+        groups = user.group_members.all()
+        return self.queryset.filter(group__in=groups)
+
     @action(detail=False, methods=["get"])
     def balance(self, request):
         user = request.user
@@ -43,7 +50,6 @@ class ExpenseViewSet(BaseModelViewSet):
         current_month = current_date.month
         current_year = current_date.year
         
-        # Filter expenses for the current month and year
         expenses = self.queryset.filter(
             user=user,
             date_spent__month=current_month,
@@ -55,7 +61,7 @@ class ExpenseViewSet(BaseModelViewSet):
         balance = fixed_income - total_expenses
 
         return Response({
-            "month": current_date.strftime('%Y-%m'),  # Format as YYYY-MM
+            "month": current_date.strftime('%Y-%m'),
             "fixed_income": fixed_income,
             "total_expenses": total_expenses,
             "balance": balance
