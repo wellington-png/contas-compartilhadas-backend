@@ -168,21 +168,23 @@ class GroupViewSet(BaseModelViewSet):
             return Response(
                 {"detail": "E-mail é obrigatório."}, status=status.HTTP_400_BAD_REQUEST
             )
-
-        if not User.objects.filter(email=email).exists():
+        user = user = User.objects.filter(email=email).first()
+        if not user:
             return Response(
                 {"detail": "E-mail não está registrado no sistema."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         invite_token = generate_invite_token()
-        GroupInvite.objects.create(group=group, token=invite_token)
+        GroupInvite.objects.create(group=group, token=invite_token, user=user)
         invite_link = f"http://127.0.0.1:8000/join/{group.id}/{invite_token}/"
+        button_text = "<a href='{invite_link}'>Clique aqui para se juntar ao grupo</a>"
 
         subject = f"Convite para participar do grupo {group.name}"
         message = f"Você foi convidado a participar do grupo {group.name} no aplicativo Contas Compartilhadas.\n\n"
         message += f"Para se juntar ao grupo, clique no link abaixo:\n{invite_link}\n\n"
         message += "Se você não esperava este convite, por favor ignore este e-mail."
+        message += f"<br><br>{button_text}"    
 
         send_mail(
             subject,
