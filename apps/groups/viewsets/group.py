@@ -131,9 +131,10 @@ class GroupViewSet(BaseModelViewSet):
     def invite_qrcode(self, request, *args, **kwargs):
         group = self.get_object()
 
-        invite_token = generate_invite_token()
-        GroupInvite.objects.create(group=group, token=invite_token)
-        invite_link = f"http://127.0.0.1:8000/join/{group.id}/{invite_token}/"
+        data = {
+            "group_id": group.id,
+            "group_name": group.name,
+        }
 
         qr = qrcode.QRCode(
             version=1,
@@ -141,7 +142,7 @@ class GroupViewSet(BaseModelViewSet):
             box_size=10,
             border=4,
         )
-        qr.add_data(invite_link)
+        qr.add_data(data)
         qr.make(fit=True)
 
         img = qr.make_image(fill="black", back_color="white")
