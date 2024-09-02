@@ -177,7 +177,7 @@ class GroupViewSet(BaseModelViewSet):
 
         invite_token = generate_invite_token()
         GroupInvite.objects.create(group=group, token=invite_token, user=user)
-        invite_link = f"http://127.0.0.1:8000/join/{group.id}/{invite_token}/"
+        invite_link = f"https://wellington2.thunder.dev.br/join/{group.id}/{invite_token}/"
         button_text = "<a href='{invite_link}'>Clique aqui para se juntar ao grupo</a>"
 
         subject = f"Convite para participar do grupo {group.name}"
