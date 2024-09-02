@@ -2,7 +2,10 @@ from apps.core.viewsets.base import BaseModelViewSet
 from apps.finances.serializers import ExpenseSerializer
 from apps.finances.models import Expense
 from django_filters.rest_framework import DjangoFilterBackend
-
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from django.db.models import Sum
+from django.utils.timezone import now
 
 import django_filters
 from django.db.models import Q
@@ -31,3 +34,29 @@ class ExpenseViewSet(BaseModelViewSet):
     ordering = ["-created_at"]
     lookup_field = "id"
     lookup_url_kwarg = "id"
+
+
+    @action(detail=False, methods=["get"])
+    def balance(self, request):
+        user = request.user
+        current_date = now().date()
+        current_month = current_date.month
+        current_year = current_date.year
+        
+        # Filter expenses for the current month and year
+        expenses = self.queryset.filter(
+            user=user,
+            date_spent__month=current_month,
+            date_spent__year=current_year
+        )
+        
+        total_expenses = expenses.aggregate(total=Sum('amount'))['total'] or 0
+        fixed_income = user.fixed_income or 0
+        balance = fixed_income - total_expenses
+
+        return Response({
+            "month": current_date.strftime('%Y-%m'),  # Format as YYYY-MM
+            "fixed_income": fixed_income,
+            "total_expenses": total_expenses,
+            "balance": balance
+        })
