@@ -16,3 +16,6 @@ class Expense(BaseModel):
 
     def __str__(self):
         return f"{self.user.email} - {self.description}"
+
+    def __hash__(self) -> int:
+        return hash(self.pk)
