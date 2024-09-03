@@ -44,6 +44,8 @@ class GroupViewSet(BaseModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
+        if self.action == "join":
+            return Group.objects.all()
         return Group.objects.filter(members=user)
 
     def perform_update(self, serializer):
@@ -333,6 +335,7 @@ class GroupViewSet(BaseModelViewSet):
     def join(self, request, pk=None):
         user = request.user
         group = get_object_or_404(Group, id=pk)
+
 
         if Membership.objects.filter(user=user, group=group).exists():
             return Response(
